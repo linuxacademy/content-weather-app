@@ -1,12 +1,15 @@
 # Create an image for the weather-app
-FROM node
-LABEL org.label-schema.version=v1.1
-ENV NODE_ENV="production"
-ENV PORT 3001
-ARG SRC_DIR=/var/node
-RUN mkdir -p $SRC_DIR
-ADD src/ $SRC_DIR
-WORKDIR $SRC_DIR
+FROM node AS source
+RUN mkdir -p /node/weather-app
+ADD src/ /node/weather-app
+WORKDIR /node/weather-app
 RUN npm install
-EXPOSE $PORT
-ENTRYPOINT ./bin/www
+
+FROM node:alpine
+ARG APP_VERSION=V1.1
+LABEL org.label-schema.version=$APP_VERSION
+ENV NODE_ENV="production"
+COPY --from=source /node/weather-app /node/weather-app
+WORKDIR /node/weather-app
+EXPOSE 3000
+ENTRYPOINT ["./bin/www"]
